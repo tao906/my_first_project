@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4" main_tree_to_execute="BehaviorTree">
+  <BehaviorTree ID="BehaviorTree">
+    <ReactiveSequence>
+      <!-- 订阅节点 -->
+      <SubAllRobotHP topic_name="robot_hp" robot_hp="{robot_hp}"/>
+      <SubArmors topic_name="/detector/armors" armors="{armors}"/>
+      <SubRobotStatus topic_name="robot_status" robot_status="{robot_status}"/>
+      <SubGameStatus topic_name="game_status" game_status="{game_status}"/>
+      
+      <!-- 主逻辑 -->
+      <Fallback>
+        <Sequence>
+          <IsStatusOK name="CheckStatus"
+                      message="{robot_status}"
+                      hp_threshold="150"
+                      heat_threshold="1000"/>
+          <Sequence>
+            <SendGoal name="MoveToA"
+                      goal_pose="3.71;2.74;0; 0;0;0;1"
+                      action_name="navigate_to_pose"/>
+            <Repeat num_cycles="-1">
+              <Sequence>
+                <SendGoal name="MoveToC"
+                          goal_pose="3.71;2.74;0; 0;0;0;1"
+                          action_name="navigate_to_pose"/>
+                <SendGoal name="MoveToA"
+                          goal_pose="3.71;2.74;0; 0;0;0;1"
+                          action_name="navigate_to_pose"/>
+                <!-- 循环中检查状态 -->
+                <IsStatusOK name="CheckInLoop"
+                            message="{robot_status}"
+                            hp_threshold="150"
+                            heat_threshold="1000"/>
+              </Sequence>
+            </Repeat>
+          </Sequence>
+        </Sequence>
+        <!-- 备用路径 -->
+        <SendGoal name="MoveToB"
+                  goal_pose="-0.34;-3.07;0; 0;0;0;1"
+                  action_name="navigate_to_pose"/>
+      </Fallback>
+    </ReactiveSequence>
+  </BehaviorTree>
+</root>
